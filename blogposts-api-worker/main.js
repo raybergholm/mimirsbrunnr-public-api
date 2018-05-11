@@ -11,9 +11,9 @@ const generateHttpResponse = (statusCode, payload) => {
 exports.handler = async (event, context, callback) => {
     // TODO implement
 
+    console.log(event);
+
     const result = await processRequest(event);
 
     return generateHttpResponse(200);
 };
-
-

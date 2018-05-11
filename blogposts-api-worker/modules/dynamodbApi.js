@@ -3,10 +3,27 @@ AWS.config.update({
     region: "eu-west-1"
 });
 
-const dynamoDB = new AWS.DynamoDB();
+const dynamodb = new AWS.DynamoDB();
 
-const BLOG_POST_CATALOGUE_TABLE_NAME = process.env.BLOG_POST_CATALOGUE_TABLE_NAME;
+const scanTable = (tableName, limit) => {
+    const dynamodbRequest = dynamodb.scan({
+        TableName: tableName,
+        Limit: limit
+    });
 
-module.exports = {
-
+    return dynamodbRequest.promise().then(
+        (result) => {
+            return result.Items;
+        },
+        (err) => {
+            console.log("error reading DynamoDB: ", err);
+            return err;
+        }
+    );
 };
+
+const dynamodbApi = (tableName) => ({
+    scanTable: (limit) => scanTable(tableName, limit)
+});
+
+module.exports = dynamodbApi;
