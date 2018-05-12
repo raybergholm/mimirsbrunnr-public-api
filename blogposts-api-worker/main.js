@@ -15,5 +15,7 @@ exports.handler = async (event, context, callback) => {
 
     const result = await processRequest(event);
 
-    return generateHttpResponse(200);
+    const response = generateHttpResponse(200, result);
+
+    callback(null, response);
 };
