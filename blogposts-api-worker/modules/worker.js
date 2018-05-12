@@ -39,6 +39,7 @@ const listPosts = async (incoming) => {
     const promises = result.map(async (entry) => ({
         postId: entry.postId.S,
         title: entry.title.S,
+        timestamp: entry.timestamp.S,
         body: await s3.getFile(entry.s3Filename.S),
         tags: entry.tags.SS
     }));
