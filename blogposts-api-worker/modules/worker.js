@@ -39,8 +39,8 @@ const listPosts = async (incoming) => {
     const posts = result.map(async (entry) => ({
         postId: entry.postId.S,
         title: entry.title.S,
-        body: await s3.getFile(entry),
-        tags: entry.tags.A ? entry.tags.A : entry.tags
+        body: await s3.getFile(entry.s3Filename.S),
+        tags: entry.tags.SS
     }));
     // skip comments, not needed for the feed!
 
