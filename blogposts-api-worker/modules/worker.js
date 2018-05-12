@@ -10,10 +10,10 @@ const s3 = s3Api(BLOG_POSTS_BUCKET_NAME);
 const processRequest = async ({ path, pathParameters, queryStringParameters }) => {
     if (pathParameters) {
         // fetch a specific post
-        return fetchPost(pathParameters.post);
+        return await fetchPost(pathParameters.post);
     }else {
         // list all posts
-        return listPosts(queryStringParameters);
+        return await listPosts(queryStringParameters);
     }
 };
 
@@ -43,6 +43,8 @@ const listPosts = async (incoming) => {
         tags: entry.tags.SS
     }));
     // skip comments, not needed for the feed!
+
+    console.log("final posts", posts);
 
     // concat into an array of objects and return it
     return posts;
