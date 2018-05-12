@@ -12,7 +12,7 @@ const getFile = async (bucket, filename) => {
     });
 
     return s3GetRequest.promise().then(
-        (result) => JSON.parse(result.Body.toString()),
+        (result) => result.Body.toString(),
         (err) => {
             console.log("S3 getObject error: ", err);
             return err;

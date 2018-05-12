@@ -36,13 +36,16 @@ const listPosts = async (incoming) => {
     console.log("ddb result", result);
 
     // for each entry, fetch from S3 to get their blogpost bodies
-    const posts = result.map(async (entry) => ({
+    const promises = result.map(async (entry) => ({
         postId: entry.postId.S,
         title: entry.title.S,
         body: await s3.getFile(entry.s3Filename.S),
         tags: entry.tags.SS
     }));
     // skip comments, not needed for the feed!
+
+    const posts = await Promise.all(promises)
+        .then((result) => result);
 
     console.log("final posts", posts);
 
