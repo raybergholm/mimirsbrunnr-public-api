@@ -5,10 +5,10 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
-const getFile = (bucket, filename) => {
+const getFile = async (bucket, filename) => {
     const s3GetRequest = s3.getObject({
         Bucket: bucket,
-        Ket: filename
+        Key: filename
     });
 
     return s3GetRequest.promise().then(

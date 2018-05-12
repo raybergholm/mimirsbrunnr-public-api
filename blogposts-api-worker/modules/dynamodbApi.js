@@ -5,7 +5,7 @@ AWS.config.update({
 
 const dynamodb = new AWS.DynamoDB();
 
-const scanTable = (tableName, limit) => {
+const scanTable = async (tableName, limit) => {
     const dynamodbRequest = dynamodb.scan({
         TableName: tableName,
         Limit: limit
