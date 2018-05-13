@@ -10,32 +10,66 @@ const s3 = s3Api(BLOG_POSTS_BUCKET_NAME);
 const processRequest = async ({ path, pathParameters, queryStringParameters }) => {
     if (pathParameters) {
         // fetch a specific post
-        return await fetchPost(pathParameters.post);
-    }else {
+        return await fetchPost({
+            partitionKey: pathParameters.post
+        });
+    } else {
         // list all posts
         return await listPosts(queryStringParameters);
     }
 };
 
-const fetchPost = async (postId) => {
-    // fetch dynamodb entry for metadata & s3 link
+const fetchPost = async (queryParams) => {
+    console.log("fetchPost incoming queryParams:", queryParams);
 
-    // fetch from S3 to get the body
+    const result = await dynamodb.queryTable(queryParams);
 
-    // also fetch related comments
+    const post = await {
+        postId: result[0].postId.S,
+        title: result[0].title.S,
+        timestamp: result[0].timestamp.S,
+        body: await s3.getFile(result[0].s3Filename.S),
+        tags: result[0].tags.SS,
+        comments: fetchComments(queryParams)
+    };
 
-    // concat the two into one object and return it
+    // TODO: fetch the comments for this post
+
+    console.log("fetchPost returned the following post:", post);
+
+    return post;
+};
+
+const queryPosts = async (queryParams) => {
+    console.log("queryPosts incoming queryParams:", queryParams);
+
+    const result = await dynamodb.queryTable(queryParams);
+
+    console.log("ddb result", result);
+
+    const promises = await result.map(async (entry) => ({
+        postId: entry.postId.S,
+        title: entry.title.S,
+        timestamp: entry.timestamp.S,
+        body: await s3.getFile(entry.s3Filename.S),
+        tags: entry.tags.SS
+    }));
+
+    const posts = await Promise.all(promises);
+
+    console.log("queryPosts returned the following posts:", posts);
+
+    return posts;
 };
 
 const listPosts = async (incoming) => {
-    console.log("incoming to listPosts", incoming);
+    console.log("listPosts incoming queryParams:", incoming);
 
     // fetch dynamodb entries
     const result = await dynamodb.scanTable(50);
 
     console.log("ddb result", result);
 
-    // for each entry, fetch from S3 to get their blogpost bodies
     const promises = result.map(async (entry) => ({
         postId: entry.postId.S,
         title: entry.title.S,
@@ -43,19 +77,17 @@ const listPosts = async (incoming) => {
         body: await s3.getFile(entry.s3Filename.S),
         tags: entry.tags.SS
     }));
-    // skip comments, not needed for the feed!
 
-    const posts = await Promise.all(promises)
-        .then((result) => result);
+    const posts = await Promise.all(promises);
 
-    console.log("final posts", posts);
+    console.log("listPosts returned the following posts:", posts);
 
-    // concat into an array of objects and return it
     return posts;
 };
 
-const fetchComments = async (postId) => {
+const fetchComments = async (queryParams) => {
 
+    return [];
 };
 
 module.exports = {

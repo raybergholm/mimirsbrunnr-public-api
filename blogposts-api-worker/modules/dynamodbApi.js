@@ -22,8 +22,32 @@ const scanTable = async (tableName, limit) => {
     );
 };
 
+const queryTable = async (tableName, { partitionKey }) => {
+    const params = {
+        TableName: tableName,
+        KeyConditionExpression: "postId = :partitionValue",
+        ExpressionAttributeValues: {
+            ":partitionValue": {
+                S: `${partitionKey}`
+            }
+        }
+    };
+    const dynamodbRequest = dynamodb.query(params);
+
+    return dynamodbRequest.promise().then(
+        (result) => {
+            return result.Items;
+        },
+        (err) => {
+            console.log("error reading DynamoDB: ", err);
+            return err;
+        }
+    );
+};
+
 const dynamodbApi = (tableName) => ({
-    scanTable: (limit) => scanTable(tableName, limit)
+    scanTable: async (limit) => await scanTable(tableName, limit),
+    queryTable: async (queryParams) => await queryTable(tableName, queryParams)
 });
 
 module.exports = dynamodbApi;
