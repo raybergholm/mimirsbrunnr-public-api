@@ -4,6 +4,9 @@ const generateHttpResponse = (statusCode, payload) => {
     return {
         isBase64Encoded: false,
         statusCode: statusCode,
+        headers: {
+            "Access-Control-Allow-Origin": "*"
+        },
         body: typeof payload === "string" ? payload : JSON.stringify(payload)
     };
 };
