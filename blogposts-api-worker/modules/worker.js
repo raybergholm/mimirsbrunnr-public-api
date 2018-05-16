@@ -26,6 +26,7 @@ const fetchPost = async (queryParams) => {
 
     const post = await {
         postId: result[0].postId.S,
+        author: result[0].author.S,
         title: result[0].title.S,
         timestamp: result[0].timestamp.S,
         body: await s3.getFile(result[0].s3Filename.S),
@@ -49,6 +50,7 @@ const queryPosts = async (queryParams) => {
 
     const promises = await result.map(async (entry) => ({
         postId: entry.postId.S,
+        author: entry.author.S,
         title: entry.title.S,
         timestamp: entry.timestamp.S,
         body: await s3.getFile(entry.s3Filename.S),
@@ -72,6 +74,7 @@ const listPosts = async (incoming) => {
 
     const promises = result.map(async (entry) => ({
         postId: entry.postId.S,
+        author: entry.author.S,
         title: entry.title.S,
         timestamp: entry.timestamp.S,
         body: await s3.getFile(entry.s3Filename.S),
