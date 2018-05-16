@@ -12,28 +12,30 @@ const QUICK_LINKS = "quick-links";
 const ARCHIVE_LINKS = "archive-links";
 const TAG_LIST = "tag-list";
 
-const processRequest = async ({ path }) => {
-    const pathTokens = path.split("/");
-    const lastToken = pathTokens[pathTokens.length - 1];
+const processRequest = async ({ pathParameters }) => {
+    let resource = null;
+    if (pathParameters) {
+        resource = pathParameters.resource;
+    }
 
     let filename = null;
-    switch(lastToken){
+    switch (resource) {
         case QUICK_LINKS:
-        filename = QUICK_LINKS_FILENAME;
-        break;
+            filename = QUICK_LINKS_FILENAME;
+            break;
         case ARCHIVE_LINKS:
-        filename = ARCHIVE_LINKS_FILENAME;
-        break;
+            filename = ARCHIVE_LINKS_FILENAME;
+            break;
         case TAG_LIST:
-        filename = TAG_LIST_FILENAME;
-        break;
+            filename = TAG_LIST_FILENAME;
+            break;
         default:
 
     }
 
-    if(filename){
+    if (filename) {
         return await s3.getFile(filename);
-    }else {
+    } else {
         return null;
     }
 };
