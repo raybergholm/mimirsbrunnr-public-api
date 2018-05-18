@@ -19,22 +19,23 @@ const processRequest = async ({ path, pathParameters, queryStringParameters }) =
     }
 };
 
+const buildBlogPost = async (ddbEntry) => await ({
+    postId: ddbEntry.postId.S,
+    author: ddbEntry.author.S,
+    title: ddbEntry.title.S,
+    timestamp: ddbEntry.timestamp.S,
+    body: await s3.getFile(ddbEntry.s3Filename.S),
+    tags: ddbEntry.tags.SS
+});
+
 const fetchPost = async (queryParams) => {
     console.log("fetchPost incoming queryParams:", queryParams);
 
     const result = await dynamodb.queryTable(queryParams);
 
-    const post = await {
-        postId: result[0].postId.S,
-        author: result[0].author.S,
-        title: result[0].title.S,
-        timestamp: result[0].timestamp.S,
-        body: await s3.getFile(result[0].s3Filename.S),
-        tags: result[0].tags.SS,
-        comments: fetchComments(queryParams)
-    };
+    const post = buildBlogPost(result[0]);
 
-    // TODO: fetch the comments for this post
+    const comments = fetchComments(queryParams);
 
     console.log("fetchPost returned the following post:", post);
 
@@ -48,14 +49,7 @@ const queryPosts = async (queryParams) => {
 
     console.log("ddb result", result);
 
-    const promises = await result.map(async (entry) => ({
-        postId: entry.postId.S,
-        author: entry.author.S,
-        title: entry.title.S,
-        timestamp: entry.timestamp.S,
-        body: await s3.getFile(entry.s3Filename.S),
-        tags: entry.tags.SS
-    }));
+    const promises = await result.map(async (entry) => await buildBlogPost(entry));
 
     const posts = await Promise.all(promises);
 
