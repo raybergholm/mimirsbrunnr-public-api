@@ -22,13 +22,13 @@ const scanTable = async (tableName, limit) => {
     );
 };
 
-const queryTable = async (tableName, { partitionKey }) => {
+const queryTable = async (tableName, { postId }) => {
     const params = {
         TableName: tableName,
-        KeyConditionExpression: "postId = :partitionValue",
+        KeyConditionExpression: "postId = :postId",
         ExpressionAttributeValues: {
-            ":partitionValue": {
-                S: `${partitionKey}`
+            ":postId": {
+                S: `${postId}`
             }
         }
     };
