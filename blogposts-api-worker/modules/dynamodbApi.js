@@ -22,13 +22,13 @@ const scanTable = async (tableName, limit) => {
     );
 };
 
-const queryTable = async (tableName, { postId }) => {
+const queryTable = async (tableName, { yearMonthKey, publishDate }) => {
     const params = {
         TableName: tableName,
-        KeyConditionExpression: "postId = :postId",
+        KeyConditionExpression: "yearMonthKey = :yearMonthKey",
         ExpressionAttributeValues: {
-            ":postId": {
-                S: `${postId}`
+            ":yearMonthKey": {
+                S: `${yearMonthKey}`
             }
         }
     };
