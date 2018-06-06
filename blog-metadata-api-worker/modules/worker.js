@@ -2,42 +2,24 @@ const s3Api = require("./s3Api");
 
 const BLOG_METADATA_BUCKET_NAME = process.env.BLOG_METADATA_BUCKET_NAME;
 
-const QUICK_LINKS_FILENAME = process.env.QUICK_LINKS_FILENAME;
-const ARCHIVE_LINKS_FILENAME = process.env.ARCHIVE_LINKS_FILENAME;
-const TAG_LIST_FILENAME = process.env.TAG_LIST_FILENAME;
-
 const s3 = s3Api(BLOG_METADATA_BUCKET_NAME);
 
-const QUICK_LINKS = "quick-links";
-const ARCHIVE_LINKS = "archive-links";
-const TAG_LIST = "tag-list";
+const filenames = {
+    QuickLinks: process.env.QUICK_LINKS_FILENAME,
+    ArchiveLinks: process.env.ARCHIVE_LINKS_FILENAME,
+    Tags: process.env.TAGS_FILENAME,
+    Config: process.env.CONFIG_FILENAME
+};
 
 const processRequest = async ({ pathParameters }) => {
-    let resource = null;
-    if (pathParameters) {
-        resource = pathParameters.resource;
-    }
+    const data = {
+        QuickLinks: await s3.getFile(filenames.QuickLinks),
+        ArchiveLinks: await s3.getFile(filenames.ArchiveLinks),
+        Tags: await s3.getFile(filenames.QuicTagskLinks),
+        Config: await s3.getFile(filenames.InitialConfig)
+    };
 
-    let filename = null;
-    switch (resource) {
-        case QUICK_LINKS:
-            filename = QUICK_LINKS_FILENAME;
-            break;
-        case ARCHIVE_LINKS:
-            filename = ARCHIVE_LINKS_FILENAME;
-            break;
-        case TAG_LIST:
-            filename = TAG_LIST_FILENAME;
-            break;
-        default:
-
-    }
-
-    if (filename) {
-        return await s3.getFile(filename);
-    } else {
-        return null;
-    }
+    return data;
 };
 
 module.exports = {
