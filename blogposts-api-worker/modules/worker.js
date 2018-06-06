@@ -1,41 +1,65 @@
 const dynamodbApi = require("./dynamodbApi");
 const s3Api = require("./s3Api");
 
-const BLOG_POST_CATALOGUE_TABLE_NAME = process.env.BLOG_POST_CATALOGUE_TABLE_NAME;
-const BLOG_POSTS_BUCKET_NAME = process.env.BLOG_POSTS_BUCKET_NAME;
-
-const dynamodb = dynamodbApi(BLOG_POST_CATALOGUE_TABLE_NAME);
-const s3 = s3Api(BLOG_POSTS_BUCKET_NAME);
-
-const processRequest = async ({ path, pathParameters, queryStringParameters }) => {
-    if (pathParameters) {
-        // fetch a specific post
-        return await fetchPost({
-            partitionKey: pathParameters.post
-        });
-    } else {
-        // list all posts
-        return await listPosts(queryStringParameters);
-    }
+const REQUEST_TYPE = {
+    SinglePost: "/public/blog",
+    Page: "/public/blog/page"
 };
 
+const BLOG_POSTS_TABLE_NAME = process.env.BLOG_POSTS_TABLE_NAME;
+const BLOG_POSTS_BUCKET_NAME = process.env.BLOG_POSTS_BUCKET_NAME;
+
+const dynamodb = dynamodbApi(BLOG_POSTS_TABLE_NAME);
+const s3 = s3Api(BLOG_POSTS_BUCKET_NAME);
+
 const buildBlogPost = async (ddbEntry) => await ({
-    postId: ddbEntry.postId.S,
+    yearMonthKey: ddbEntry.yearMonthKey.S,
+    publishDate: ddbEntry.publishDate.S,
+    restUrlKey: ddbEntry.restUrlKey.S,
     author: ddbEntry.author.S,
     title: ddbEntry.title.S,
-    timestamp: ddbEntry.timestamp.S,
     body: await s3.getFile(ddbEntry.s3Filename.S),
     tags: ddbEntry.tags.SS
 });
 
-const fetchPost = async (queryParams) => {
-    console.log("fetchPost incoming queryParams:", queryParams);
+const processRequest = async ({ path, pathParameters, queryStringParameters }) => {
+    let response;
+    switch(path){
+        case REQUEST_TYPE.SinglePost:
+            response = await fetchPost({...pathParameters, queryStringParameters});
+            break;
+        case REQUEST_TYPE.Page:
+            response = await fetchPage({...pathParameters, queryStringParameters});
+            break;
+    }
 
-    const result = await dynamodb.queryTable(queryParams);
+    return response;
+};
 
-    const post = buildBlogPost(result[0]);
+const fetchPage = async ({yearMonthKey, queryStringParameters}) => {
+    if(!yearMonthKey){
+        throw new Error("Missing key, could not fetch page");
+    }
 
-    const comments = fetchComments(queryParams);
+    const result = await dynamodb.queryTable(yearMonthKey);
+
+    const posts = await Promise.all(result.map((entry) => buildBlogPost(entry)));
+
+    return posts;
+};
+
+const fetchPost = async ({post: restUrlKey, queryStringParameters}) => {
+    // NOTE: Currently no real way to get a single post out of DDB with the current setup, need to fix that
+
+    console.log("fetchPost incoming queryParams:", queryStringParameters);
+
+    const result = await dynamodb.queryTable({restUrlKey});
+
+    const post = await buildBlogPost(result[0]);
+
+    const comments = await fetchComments({restUrlKey});
+
+    post.comments = comments;
 
     console.log("fetchPost returned the following post:", post);
 
