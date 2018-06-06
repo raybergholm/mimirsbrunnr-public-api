@@ -12,13 +12,16 @@ const generateHttpResponse = (statusCode, payload) => {
 };
 
 exports.handler = async (event, context, callback) => {
-    // TODO implement
-
     console.log(event);
 
-    const result = await processRequest(event);
+    let response;
 
-    const response = generateHttpResponse(200, result);
-
-    callback(null, response);
+    try {
+        const result = await processRequest(event);
+        response = generateHttpResponse(200, result);
+        callback(null, response);
+    } catch (error) {
+        response = generateHttpResponse(500, error);
+        callback(error, response);
+    }
 };
