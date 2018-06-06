@@ -13,10 +13,10 @@ const filenames = {
 
 const processRequest = async ({ pathParameters }) => {
     const data = {
-        QuickLinks: await s3.getFile(filenames.QuickLinks),
-        ArchiveLinks: await s3.getFile(filenames.ArchiveLinks),
-        Tags: await s3.getFile(filenames.QuicTagskLinks),
-        Config: await s3.getFile(filenames.InitialConfig)
+        quickLinks: await s3.getFile(filenames.QuickLinks),
+        archiveLinks: await s3.getFile(filenames.ArchiveLinks),
+        tags: await s3.getFile(filenames.QuicTagskLinks),
+        config: await s3.getFile(filenames.InitialConfig)
     };
 
     return data;
