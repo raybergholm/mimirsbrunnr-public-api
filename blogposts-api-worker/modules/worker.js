@@ -2,8 +2,8 @@ const dynamodbApi = require("./dynamodbApi");
 const s3Api = require("./s3Api");
 
 const REQUEST_TYPE = {
-    SinglePost: "/public/blog",
-    Page: "/public/blog/page"
+    SinglePost: "/public/blog/{post}",
+    Page: "/public/blog/page/{key}"
 };
 
 const BLOG_POSTS_TABLE_NAME = process.env.BLOG_POSTS_TABLE_NAME;
@@ -22,9 +22,9 @@ const buildBlogPost = async (ddbEntry) => await ({
     tags: ddbEntry.tags.SS
 });
 
-const processRequest = async ({ path, pathParameters, queryStringParameters }) => {
+const processRequest = async ({ resource, pathParameters, queryStringParameters }) => {
     let response;
-    switch(path){
+    switch(resource){
         case REQUEST_TYPE.SinglePost:
             response = await fetchPost({...pathParameters, queryStringParameters});
             break;
@@ -36,12 +36,15 @@ const processRequest = async ({ path, pathParameters, queryStringParameters }) =
     return response;
 };
 
-const fetchPage = async ({yearMonthKey, queryStringParameters}) => {
-    if(!yearMonthKey){
+const fetchPage = async ({key, queryStringParameters}) => {
+    if(!key){
         throw new Error("Missing key, could not fetch page");
     }
 
-    const result = await dynamodb.queryTable(yearMonthKey);
+    const result = await dynamodb.queryTable({
+        keyName: "yearMonthKey", 
+        keyValue: key
+    });
 
     const posts = await Promise.all(result.map((entry) => buildBlogPost(entry)));
 
